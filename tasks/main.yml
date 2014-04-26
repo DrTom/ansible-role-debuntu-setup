@@ -1,0 +1,90 @@
+
+### Locale Configuration
+
+- name: Setup locale config to en_US.UTF-8
+  copy: src=locale dest=/etc/default/locale
+  register: setup_locale_config
+
+- name: Update locale 
+  command: /usr/sbin/update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 
+  register: updated_locale
+  when: setup_locale_config.changed
+
+
+### Timezone Configuration
+
+- name: Setup timezone config Set timezone to UTC
+  copy: src=timezone dest=/etc/timezone
+  register: setup_timezone_config
+
+- name: Reconfigure tzdata
+  shell: dpkg-reconfigure -f noninteractive tzdata
+  when: setup_timezone_config.changed
+
+
+### NTP Configuration
+
+- name: Install ntp packages
+  apt: pkg={{item}} state=latest update_cache=yes cache_valid_time=3600
+  with_items: [ntpdate, ntp]
+
+- name: Setup daily ntpdate config
+  template: src=ntpdate_daily
+            dest=/etc/cron.daily/ntpdate
+            mode=0755
+  register: setup_daily_ntpdate_config
+
+- name: Initial ntpdate sync
+  command: ntpdate {{ntp_server}}
+  when: setup_daily_ntpdate_config.changed
+
+- name: Setup ntp config
+  template: src=ntp.conf
+            dest=/etc/ntp.conf
+            mode=0644
+  register: setup_ntp_config
+
+- name: Restart ntpd
+  service: name=ntp
+           state=restarted
+  when: setup_ntp_config.changed
+
+
+### Vim as default editor
+
+- name: Install vim-nox
+  apt: pkg=vim-nox state=latest update_cache=yes cache_valid_time=3600
+  register: install_vim_nox
+
+- name: Set vim-nox as default editor
+  command: update-alternatives --set editor /usr/bin/vim.nox
+  when: install_vim_nox.changed
+
+
+### Install Other
+
+- name: Install other
+  apt: pkg={{item}} state=latest update_cache=yes cache_valid_time=3600
+  with_items: 
+    - python-pycurl
+
+
+### Etc keeper
+ 
+- name: Etc keeper install packages 
+  apt: pkg={{item}} state=latest update_cache=yes cache_valid_time=3600
+  with_items: 
+    - etckeeper
+    - git 
+
+- name: Etc keeper uninitialize bzr (in case)
+  command: etckeeper uninit -f
+           removes=/etc/.bzr
+
+- name: Etc keeper configuration for git
+  copy: src=etckeeper.conf 
+        dest=/etc/etckeeper/etckeeper.conf
+
+- name: Etc keeper initialize with git 
+  shell: etckeeper init && etckeeper commit 'initial commit'
+         creates=/etc/.git

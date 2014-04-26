@@ -1,0 +1,2 @@
+# {{ansible_managed}}
+ntpdate {{ntp_server}}
