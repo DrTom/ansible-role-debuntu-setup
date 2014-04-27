@@ -35,7 +35,7 @@
   register: setup_daily_ntpdate_config
 
 - name: Initial ntpdate sync
-  command: ntpdate {{ntp_server}}
+  shell: service ntp stop && ntpdate {{ntp_server}} && service ntp start
   when: setup_daily_ntpdate_config.changed
 
 - name: Setup ntp config

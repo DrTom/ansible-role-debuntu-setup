@@ -1,2 +1,4 @@
 # {{ansible_managed}}
+service ntp stop
 ntpdate {{ntp_server}}
+service ntp start
