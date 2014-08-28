@@ -93,11 +93,11 @@
 ### manage authorized keys
 
 - authorized_key: user=root
-                  key='{{item}}'
+                  key="{{item}}"
   with_items: ssh_keys
 
 - authorized_key: user=root
-                  key='{{item}}'
+                  key="{{item}}"
                   state=absent
   with_items: removed_ssh_keys
 
