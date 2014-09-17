@@ -1,4 +1,8 @@
 
+### Upgrade 
+
+- apt:  upgrade=dist update_cache=yes cache_valid_time=3600
+
 ### Locale Configuration
 
 - name: Setup locale config to en_US.UTF-8
@@ -100,6 +104,5 @@
                   key="{{item}}"
                   state=absent
   with_items: removed_ssh_keys
-
 
 
