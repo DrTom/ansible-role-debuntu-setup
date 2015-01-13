@@ -1,0 +1,4 @@
+# managed by ansible
+
+[user]
+        email = root@{{ansible_hostname}}

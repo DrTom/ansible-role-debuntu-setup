@@ -1,7 +1,26 @@
+### Wheezy specific stuff 
+
+- apt_repository: repo='deb http://ftp.debian.org/debian wheezy-backports main' state=present update_cache=yes
+  when: ansible_distribution_release == 'wheezy'
+
+- template: src=backports-pinning
+            dest=/etc/apt/preferences.d/backports-pinning
+  when: ansible_distribution_release == 'wheezy'
 
 ### Upgrade 
 
-- apt:  upgrade=dist update_cache=yes cache_valid_time=3600
+- shell: pidof /bin/systemd
+  register: has_systemd
+  ignore_errors: yes
+
+# dist upgrade, but not on wheezy with systemd 
+# because it would remove system
+
+- apt: upgrade=dist update_cache=yes cache_valid_time=3600
+  when: ansible_distribution_release != 'wheezy' or has_systemd.stdout != "1"
+
+- apt:  update_cache=yes cache_valid_time=3600
+  when: ansible_distribution_release == 'wheezy' and has_systemd.stdout == "1"
 
 ### Locale Configuration
 
@@ -75,6 +94,9 @@
 
 ### Etc keeper
  
+- template: src=root_gitconfig
+            dest=~/.gitconfig
+
 - name: Etc keeper install packages 
   apt: pkg={{item}} state=latest update_cache=yes cache_valid_time=3600
   with_items: 
