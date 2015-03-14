@@ -1,3 +1,4 @@
 ntp_server: ch.pool.ntp.org
+ntp_enabled: True
 ssh_keys: []
 removed_ssh_keys: []

@@ -3,3 +3,4 @@
 service ntp stop
 ntpdate {{ntp_server}}
 service ntp start
+exit 0  # ignore service states

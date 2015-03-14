@@ -1,20 +1,24 @@
-### Wheezy specific stuff 
+### Enable backports for Wheezy ###############################################
 
-- apt_repository: repo='deb http://ftp.debian.org/debian wheezy-backports main' state=present update_cache=yes
+- apt_repository: 
+    repo: deb http://ftp.debian.org/debian wheezy-backports main 
+    state: present 
+    update_cache: yes
   when: ansible_distribution_release == 'wheezy'
 
 - template: src=backports-pinning
             dest=/etc/apt/preferences.d/backports-pinning
   when: ansible_distribution_release == 'wheezy'
 
-### Upgrade 
+### Upgrade ###################################################################
 
 - shell: pidof /bin/systemd
   register: has_systemd
   ignore_errors: yes
+  when: ansible_distribution == 'Debian'
 
 # dist upgrade, but not on wheezy with systemd 
-# because it would remove system
+# because it would remove systemd
 
 - apt: upgrade=dist update_cache=yes cache_valid_time=3600
   when: ansible_distribution_release != 'wheezy' or has_systemd.stdout != "1"
@@ -22,7 +26,7 @@
 - apt:  update_cache=yes cache_valid_time=3600
   when: ansible_distribution_release == 'wheezy' and has_systemd.stdout == "1"
 
-### Locale Configuration
+### Locale Configuration ######################################################
 
 - name: Setup locale config to en_US.UTF-8
   copy: src=locale dest=/etc/default/locale
@@ -34,7 +38,7 @@
   when: setup_locale_config.changed
 
 
-### Timezone Configuration
+### Timezone Configuration ####################################################
 
 - name: Setup timezone config Set timezone to UTC
   copy: src=timezone dest=/etc/timezone
@@ -44,12 +48,9 @@
   shell: dpkg-reconfigure -f noninteractive tzdata
   when: setup_timezone_config.changed
 
+### ntpdate ###################################################################
 
-### NTP Configuration
-
-- name: Install ntp packages
-  apt: pkg={{item}} state=latest update_cache=yes cache_valid_time=3600
-  with_items: [ntpdate, ntp]
+- apt: pkg=ntpdate state=latest update_cache=yes cache_valid_time=3600
 
 - name: Setup daily ntpdate config
   template: src=ntpdate_daily
@@ -58,22 +59,32 @@
   register: setup_daily_ntpdate_config
 
 - name: Initial ntpdate sync
-  shell: service ntp stop && ntpdate {{ntp_server}} && service ntp start
+  shell: /etc/cron.daily/ntpdate
   when: setup_daily_ntpdate_config.changed
 
-- name: Setup ntp config
-  template: src=ntp.conf
+### NTP Configuration #########################################################
+
+- apt: pkg=ntp state=latest update_cache=yes cache_valid_time=3600
+  when: ntp_enabled
+
+- apt: pkg=ntp state=absent update_cache=yes cache_valid_time=3600
+  when: not ntp_enabled
+
+- template: src=ntp.conf
             dest=/etc/ntp.conf
             mode=0644
   register: setup_ntp_config
 
-- name: Restart ntpd
-  service: name=ntp
+- service: name=ntp
            state=restarted
-  when: setup_ntp_config.changed
+  when: ntp_enabled and setup_ntp_config.changed
+
+- service: name=ntp
+           state=started
+  when: ntp_enabled 
 
 
-### Vim as default editor
+### Vim as default editor #####################################################
 
 - name: Install vim-nox
   apt: pkg=vim-nox state=latest update_cache=yes cache_valid_time=3600
@@ -84,15 +95,15 @@
   when: install_vim_nox.changed
 
 
-### Install Other
+### Install Other #############################################################
 
-- name: Install other
+- name: Install other things for ansible
   apt: pkg={{item}} state=latest update_cache=yes cache_valid_time=3600
   with_items: 
     - python-pycurl
 
 
-### Etc keeper
+### Etc keeper ################################################################
  
 - template: src=root_gitconfig
             dest=~/.gitconfig
@@ -116,7 +127,7 @@
          creates=/etc/.git
 
 
-### manage authorized keys
+### manage authorized keys ####################################################
 
 - authorized_key: user=root
                   key="{{item}}"
