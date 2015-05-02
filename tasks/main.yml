@@ -12,19 +12,7 @@
 
 ### Upgrade ###################################################################
 
-- shell: pidof /bin/systemd
-  register: has_systemd
-  ignore_errors: yes
-  when: ansible_distribution == 'Debian'
-
-# dist upgrade, but not on wheezy with systemd 
-# because it would remove systemd
-
 - apt: upgrade=dist update_cache=yes cache_valid_time=3600
-  when: ansible_distribution_release != 'wheezy' or has_systemd.stdout != "1"
-
-- apt:  update_cache=yes cache_valid_time=3600
-  when: ansible_distribution_release == 'wheezy' and has_systemd.stdout == "1"
 
 ### Locale Configuration ######################################################
 
