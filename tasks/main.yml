@@ -103,6 +103,27 @@
          creates=/etc/.git
 
 
+### monit #####################################################################
+
+- apt: pkg={{item}} state=latest update_cache=yes cache_valid_time=3600
+  with_items: 
+    - monit
+
+- template: src=monit_defaults
+            dest=/etc/monit/conf.d/defaults
+            mode=0700
+  register: monit_default_config
+
+- service: 
+    name: monit
+    state: restarted
+  when: monit_default_config.changed
+
+- service:
+    name: monit 
+    state: started
+
+
 ### manage authorized keys ####################################################
 
 - authorized_key: user=root
