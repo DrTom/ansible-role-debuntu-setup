@@ -1,15 +1,3 @@
-### Enable backports for Wheezy ###############################################
-
-- apt_repository: 
-    repo: deb http://ftp.debian.org/debian wheezy-backports main 
-    state: present 
-    update_cache: yes
-  when: ansible_distribution_release == 'wheezy'
-
-- template: src=backports-pinning
-            dest=/etc/apt/preferences.d/backports-pinning
-  when: ansible_distribution_release == 'wheezy'
-
 ### Upgrade ###################################################################
 
 - apt: upgrade=dist update_cache=yes cache_valid_time=3600
