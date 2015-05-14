@@ -71,6 +71,20 @@
   when: install_vim_nox.changed
 
 
+### vi shell behavior #########################################################
+
+- template: 
+    mode: 0644
+    src: profile_vi.sh
+    dest: /etc/profile.d/vi.sh
+
+- lineinfile: 
+   line: syntax on
+   state: present
+   dest: /etc/vim/vimrc.local
+   create: yes
+   mode: 0644
+
 ### Install Other #############################################################
 
 - name: Install other things for ansible
