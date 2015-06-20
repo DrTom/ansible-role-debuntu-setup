@@ -8,8 +8,8 @@
   copy: src=locale dest=/etc/default/locale
   register: setup_locale_config
 
-- name: Update locale 
-  command: /usr/sbin/update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 
+- name: Update locale
+  command: /usr/sbin/update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
   register: updated_locale
   when: setup_locale_config.changed
 
@@ -57,7 +57,7 @@
 
 - service: name=ntp
            state=started
-  when: ntp_enabled 
+  when: ntp_enabled
 
 
 ### Vim as default editor #####################################################
@@ -73,12 +73,12 @@
 
 ### vi shell behavior #########################################################
 
-- template: 
+- template:
     mode: 0644
     src: profile_vi.sh
     dest: /etc/profile.d/vi.sh
 
-- lineinfile: 
+- lineinfile:
    line: syntax on
    state: present
    dest: /etc/vim/vimrc.local
@@ -89,30 +89,30 @@
 
 - name: Install other things for ansible
   apt: pkg={{item}} state=latest update_cache=yes cache_valid_time=3600
-  with_items: 
+  with_items:
     - python-pycurl
 
 
 ### Etc keeper ################################################################
- 
+
 - template: src=root_gitconfig
             dest=~/.gitconfig
 
-- name: Etc keeper install packages 
+- name: Etc keeper install packages
   apt: pkg={{item}} state=latest update_cache=yes cache_valid_time=3600
-  with_items: 
+  with_items:
     - etckeeper
-    - git 
+    - git
 
 - name: Etc keeper uninitialize bzr (in case)
   command: etckeeper uninit -f
            removes=/etc/.bzr
 
 - name: Etc keeper configuration for git
-  copy: src=etckeeper.conf 
+  copy: src=etckeeper.conf
         dest=/etc/etckeeper/etckeeper.conf
 
-- name: Etc keeper initialize with git 
+- name: Etc keeper initialize with git
   shell: etckeeper init && etckeeper commit 'initial commit'
          creates=/etc/.git
 
@@ -120,7 +120,7 @@
 ### monit #####################################################################
 
 - apt: pkg={{item}} state=latest update_cache=yes cache_valid_time=3600
-  with_items: 
+  with_items:
     - monit
 
 - template: src=monit_defaults
@@ -128,13 +128,13 @@
             mode=0700
   register: monit_default_config
 
-- service: 
+- service:
     name: monit
     state: restarted
   when: monit_default_config.changed
 
 - service:
-    name: monit 
+    name: monit
     state: started
 
 

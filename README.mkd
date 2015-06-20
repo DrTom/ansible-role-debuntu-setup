@@ -1,8 +1,8 @@
 Ansible Debuntu Setup Role
 ==========================
 
-This role sets some (quite opinionated) initial 
-configurations for Debian and Ubuntu systems: 
+This role sets some (quite opinionated) initial
+configurations for Debian and Ubuntu systems:
 
 * set the locale to `en_US.UTF-8`,
 * set the timezone to `UTC`,
