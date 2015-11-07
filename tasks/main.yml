@@ -4,6 +4,8 @@
 
 ### Locale Configuration ######################################################
 
+- command: locale-gen --purge en_US.UTF-8
+
 - name: Setup locale config to en_US.UTF-8
   copy: src=locale dest=/etc/default/locale
   register: setup_locale_config
